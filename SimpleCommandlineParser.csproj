@@ -3,11 +3,28 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFrameworks>net452;net462;net472;net48;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>Philippe Raemy</Authors>
+    <Description>Simple and straight forward command line parser for dotnet console apps</Description>
+    <Copyright>Philippe Raemy 2020</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/PhilippeRaemy/SimpleCommandLineParser</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/PhilippeRaemy/SimpleCommandLineParser</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Mannex" Version="3.0.0" />
     <PackageReference Include="morelinq" Version="3.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
