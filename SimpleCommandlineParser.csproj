@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>net452;net462;net472;net48;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mannex" Version="3.0.0" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
+  </ItemGroup>
+
+</Project>
