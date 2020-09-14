@@ -12,17 +12,17 @@ namespace SimpleCommandlineParser
 
         public class Parm
         {
-            private string _name;
+            string _name;
 
             public string Name
             {
-                get { return _name; }
-                set { _name = value.ToLowerInvariant(); }
+                get => _name;
+                set => _name = value.ToLowerInvariant();
             }
 
             public string Help { get; set; }
             public string Example { get; set; }
-            public Action<string> Lamda { get; set; }
+            public Action<string> Lambda { get; set; }
             public Action Action { get; set; }
             public bool Optional { get; set; }
 
@@ -51,16 +51,11 @@ namespace SimpleCommandlineParser
             }
         }
 
-        private readonly List<Parm> _parms = new List<Parm>();
-
-        public List<Parm> Parms
-        {
-            get { return _parms; }
-        }
+        public List<Parm> Parms { get; } = new List<Parm>();
 
         public void AddRange(IEnumerable<Parm> p)
         {
-            _parms.AddRange(p);
+            Parms.AddRange(p);
         }
 
         public Action<string> HelpWriter = null;
@@ -76,14 +71,14 @@ namespace SimpleCommandlineParser
 
         public string GetHelp()
         {
-            var maxlen = _parms.Max(p => p.Name.Length + (p.Example == null ? 0 : p.Example.Length + 1));
+            var maxlen = Parms.Max(p => p.Name.Length + (p.Example?.Length + 1 ?? 0));
 
             return new[]
                 {
                     ApplicationDescription,
-                    string.Format("{0} usage is:", ApplicationName)
+                    $"{ApplicationName} usage is:"
                 }
-                .Concat(_parms.Select(p => p.ToString(maxlen)))
+                .Concat(Parms.Select(p => p.ToString(maxlen)))
                 .ToDelimitedString(Environment.NewLine);
         }
 
@@ -94,15 +89,15 @@ namespace SimpleCommandlineParser
                                           ? a.Split('=', (name, value) => name.Substring(2).ToLowerInvariant().AsKeyTo(value))
                                           : string.Empty.AsKeyTo(a))
                          .ToList(); // anonymous
-            Analyse(Parsed, HelpWriter, ErrorWriter);
+            Analyze(Parsed, HelpWriter, ErrorWriter);
             return Parsed;
         }
 
-        private void Analyse(IEnumerable<KeyValuePair<string, string>> parsed, Action<string> hWriter, Action<string> eWriter)
+        void Analyze(IEnumerable<KeyValuePair<string, string>> parsed, Action<string> hWriter, Action<string> eWriter)
         {
-            foreach (var parm in _parms)
+            foreach (var parm in Parms)
             {
-                parm.SetDistinctiveName(_parms);
+                parm.SetDistinctiveName(Parms);
             }
 
             if (hWriter == null)
@@ -110,9 +105,9 @@ namespace SimpleCommandlineParser
                 return;
             }
 
-            var missing = _parms.Where(p => !p.Optional && Parsed.All(q => !q.Key.StartsWith(p.DistinctiveName)))
+            var missing = Parms.Where(p => !p.Optional && Parsed.All(q => !q.Key.StartsWith(p.DistinctiveName)))
                                 .Select(p => p.Name).ToList();
-            var illegal = Parsed.Where(q => _parms.All(p => !q.Key.StartsWith(p.DistinctiveName)))
+            var illegal = Parsed.Where(q => Parms.All(p => !q.Key.StartsWith(p.DistinctiveName)))
                                 .Select(q => q.Key).ToList();
             var help = Parsed.Any(p => p.Key == "?" || p.Key == "help");
             IsValid = !(help || missing.Any() || illegal.Any());
@@ -120,7 +115,7 @@ namespace SimpleCommandlineParser
             {
                 new[]
                     {
-                        help ? string.Empty : string.Format("{0} was started with invalid command line options:", ApplicationName),
+                        help ? string.Empty : $"{ApplicationName} was started with invalid command line options:",
                         help ? string.Empty : Labelize("Missing options: ", missing),
                         help ? string.Empty : Labelize("Illegal options: ", illegal),
                         GetHelp()
@@ -130,38 +125,28 @@ namespace SimpleCommandlineParser
             }
         }
 
-        private static string Labelize(string label, List<string> s)
+        static string Labelize(string label, List<string> s)
         {
             if (!s.Any()) return null;
             return label + s.ToDelimitedString(", ");
         }
 
-        public void RunLamdas()
+        public void RunLambdas()
         {
-            _parms.Join(Parsed, p => p.Name, q => q.Key, (p, q) => new { p.Lamda, p.Action, q.Value })
-                  .Where(x => x.Lamda != null || x.Action != null)
+            Parms.Join(Parsed, p => p.Name, q => q.Key, (p, q) => new { p.Lambda, p.Action, q.Value })
+                  .Where(x => x.Lambda != null || x.Action != null)
                   .Select(x => (Action)(() =>
                       {
-                          if (x.Action != null) x.Action();
-                          if (x.Lamda != null) x.Lamda(x.Value);
+                          x.Action?.Invoke();
+                          x.Lambda?.Invoke(x.Value);
                       }))
                   .ForEach(λ => λ());
-            /*            _parms.Select(p => new {p, c=Parsed.FirstOrDefault(c=>c.Key.StartsWith(p.DistinctiveName))}
-                p.Name, q => q.Key, (p, q) => new { p.Lamda, p.Action, q.Value })
-                  .Where(x => x.Lamda != null || x.Action != null)
-                  .Select(x => (Action)(() =>
-                      {
-                          if (x.Action != null) x.Action();
-                          if (x.Lamda != null) x.Lamda(x.Value);
-                      }))
-                  .ForEach(λ => λ());
-*/
         }
 
         public void EchoParameters()
         {
-            HelpWriter(string.Format("{0} running with parameters: {1}", ApplicationName,
-                                     Parsed.Select(p => string.Format("--{0}{1}{2}", p.Key, string.IsNullOrWhiteSpace(p.Value) ? string.Empty : "=", p.Value)).ToDelimitedString(" ")));
+            HelpWriter(
+                $"{ApplicationName} running with parameters: {Parsed.Select(p => $"--{p.Key}{(string.IsNullOrWhiteSpace(p.Value) ? string.Empty : "=")}{p.Value}").ToDelimitedString(" ")}");
         }
     }
 }
