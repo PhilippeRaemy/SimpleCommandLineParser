@@ -334,8 +334,8 @@ namespace SimpleCommandlineParser
             return this;
         }
 
-        public Action<string> HelpWriter = null;
-        public Action<string> ErrorWriter = null;
+        public Action<string> HelpWriter;
+        public Action<string> ErrorWriter;
 
 
         public static IEnumerable<KeyValuePair<string, string>> Parsed { get; private set; }
