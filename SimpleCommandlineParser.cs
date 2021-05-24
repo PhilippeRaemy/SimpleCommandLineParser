@@ -7,13 +7,24 @@ using MoreLinq;
 
 namespace SimpleCommandlineParser
 {
+    using System.Globalization;
+
+    /// <summary>
+    /// Command line parser class
+    /// </summary>
     public class Parser
     {
 
+        /// <summary>
+        /// An internal class to represent individual parameters
+        /// </summary>
         public class Parm
         {
             string _name;
 
+            /// <summary>
+            /// The parameter name. Names are case insensitive.
+            /// </summary>
             public string Name
             {
                 get => _name;
@@ -40,7 +51,6 @@ namespace SimpleCommandlineParser
                 DistinctiveName = Name;
             }
 
-
             public string ToString(int maxlen)
             {
                 var format = string.Format(Optional ? "[--{{0}}{{2}}{{3}}]{{4,{0}}}: {{1}}" : "--{{0}}{{2}}{{3}}{{4,{0}}}: {{1}}", maxlen + 1 - Name.Length - (Example == null ? 0 : Example.Length + 1));
@@ -56,6 +66,72 @@ namespace SimpleCommandlineParser
         public void AddRange(IEnumerable<Parm> p)
         {
             Parms.AddRange(p);
+        }
+
+        public Parser AddStringParameter(string name, Action<string> lambda, string help, string example = null)
+        {
+            Parms.Add(new Parm { Lambda = lambda, Name = name, Example = example, Help = help });
+            return this;
+        }
+
+        public Parser AddIntegerParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddStringParameter(name, x =>
+            {
+                if (int.TryParse(x, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i))
+                    lambda(i.ToString());
+                else throw new ArgumentException($"Error parsing argument `{name}`. Expecting an integer, got value `{x}`.");
+            }, help, example);
+
+        public Parser AddDecimalParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddStringParameter(name, x =>
+            {
+                if (decimal.TryParse(x, NumberStyles.Any, CultureInfo.InvariantCulture, out var i))
+                    lambda(i.ToString(CultureInfo.InvariantCulture));
+                else throw new ArgumentException($"Error parsing argument `{name}`. Expecting a decimal number, got value `{x}`.");
+            }, help, example);
+
+        public Parser AddDateParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddStringParameter(name, x =>
+            {
+                if (DateTime.TryParseExact(x, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
+                    lambda(d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+                else throw new ArgumentException($"Error parsing argument `{name}`. Expecting an ISO date (yyyy-MM-dd), got value `{x}`.");
+            }, help, example);
+
+        public Parser AddDateTimeParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddStringParameter(name, x =>
+            {
+                if (DateTime.TryParseExact(x, new []{"yyyy-MM-dd HH:mm", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.fffff" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
+                    lambda(d.ToString("yyyy-MM-dd HH:mm:ss.fffff", CultureInfo.InvariantCulture));
+                else throw new ArgumentException($"Error parsing argument `{name}`. Expecting an ISO date (yyyy-MM-dd HH:mm:ss), got value `{x}`.");
+            }, help, example);
+
+        public Parser AddSwitch(string name, Action action, string help, string example = null)
+        {
+            Parms.Add(new Parm {Action = action, Name = name, Example = example, Help = help});
+            return this;
+        }
+
+        public Parser ParserAddHelpSwitch(string name = "--help")
+            => AddSwitch(name, () => HelpWriter?.Invoke(GetHelp()), "Get help on parameters", "--help");
+
+        public Parser WithHelpWriter(Action<string> writer)
+        {
+            HelpWriter = writer;
+            return this;
+        }
+
+        public Parser WithErrorWriter(Action<string> writer)
+        {
+            ErrorWriter = writer;
+            return this;
+        }
+
+        public Parser Run(IEnumerable<string> args)
+        {
+            ParseParameters(args);
+            RunLambdas();
+            return this;
         }
 
         public Action<string> HelpWriter = null;
@@ -95,15 +171,10 @@ namespace SimpleCommandlineParser
 
         void Analyze(IEnumerable<KeyValuePair<string, string>> parsed, Action<string> hWriter, Action<string> eWriter)
         {
-            foreach (var parm in Parms)
-            {
-                parm.SetDistinctiveName(Parms);
-            }
+            foreach (var parm in Parms) parm.SetDistinctiveName(Parms);
 
             if (hWriter == null)
-            {
                 return;
-            }
 
             var missing = Parms.Where(p => !p.Optional && Parsed.All(q => !q.Key.StartsWith(p.DistinctiveName)))
                                 .Select(p => p.Name).ToList();
