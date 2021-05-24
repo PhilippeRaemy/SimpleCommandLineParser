@@ -30,11 +30,25 @@ namespace SimpleCommandlineParser
                 get => _name;
                 set => _name = value.ToLowerInvariant();
             }
-
+            /// <summary>
+            /// The help text to be displayed for this parameter
+            /// </summary>
             public string Help { get; set; }
+            /// <summary>
+            /// A value or usage example
+            /// </summary>
             public string Example { get; set; }
+            /// <summary>
+            /// A lambda function to be invoked with the parameter value when the parameter is found on the command line
+            /// </summary>
             public Action<string> Lambda { get; set; }
+            /// <summary>
+            /// An action to be invoked with the parameter value when the switch is found on the command line
+            /// </summary>
             public Action Action { get; set; }
+            /// <summary>
+            /// indicates if the parameter is optional or not. Default is not optional.
+            /// </summary>
             public bool Optional { get; set; }
 
             protected internal string DistinctiveName { get; private set; }
@@ -74,6 +88,7 @@ namespace SimpleCommandlineParser
             return this;
         }
 
+
         public Parser AddIntegerParameter(string name, Action<string> lambda, string help, string example = null)
             => AddStringParameter(name, x =>
             {
@@ -101,14 +116,14 @@ namespace SimpleCommandlineParser
         public Parser AddDateTimeParameter(string name, Action<string> lambda, string help, string example = null)
             => AddStringParameter(name, x =>
             {
-                if (DateTime.TryParseExact(x, new []{"yyyy-MM-dd HH:mm", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.fffff" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
+                if (DateTime.TryParseExact(x, new[] { "yyyy-MM-dd HH:mm", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.fffff" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
                     lambda(d.ToString("yyyy-MM-dd HH:mm:ss.fffff", CultureInfo.InvariantCulture));
                 else throw new ArgumentException($"Error parsing argument `{name}`. Expecting an ISO date (yyyy-MM-dd HH:mm:ss), got value `{x}`.");
             }, help, example);
 
         public Parser AddSwitch(string name, Action action, string help, string example = null)
         {
-            Parms.Add(new Parm {Action = action, Name = name, Example = example, Help = help});
+            Parms.Add(new Parm {Action = action, Name = name, Example = example, Help = help, Optional = true});
             return this;
         }
 
