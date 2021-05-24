@@ -68,7 +68,11 @@ namespace SimpleCommandlineParser
 
             public string ToString(int maxlen)
             {
-                var format = string.Format(Optional ? "[--{{0}}{{2}}{{3}}]{{4,{0}}}: {{1}}" : "--{{0}}{{2}}{{3}}{{4,{0}}}: {{1}}", maxlen + 1 - Name.Length - (Example == null ? 0 : Example.Length + 1));
+                var format = string.Format(Optional 
+                        ? "[--{{0}}{{2}}{{3}}]{{4,{0}}}: {{1}}" 
+                        : " --{{0}}{{2}}{{3}} {{4,{0}}}: {{1}}", 
+                    maxlen + 1 - Name.Length - (Example == null ? 0 : Example.Length + 1)
+                    );
                 return string.Format(format, Name, Help,
                     Example == null ? string.Empty : "=",
                     Example ?? string.Empty,
@@ -292,7 +296,7 @@ namespace SimpleCommandlineParser
         /// <param name="name"></param>
         /// <returns></returns>
         public Parser AddHelpSwitch(string name = "help")
-            => AddSwitch(name, () => HelpWriter?.Invoke(GetHelp()), "Get help on parameters", "--help");
+            => AddSwitch(name, () => HelpWriter?.Invoke(GetHelp()), "Get help on parameters");
 
         /// <summary>
         /// Add a help writer action
