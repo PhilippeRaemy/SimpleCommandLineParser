@@ -291,7 +291,7 @@ namespace SimpleCommandlineParser
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public Parser ParserAddHelpSwitch(string name = "--help")
+        public Parser AddHelpSwitch(string name = "help")
             => AddSwitch(name, () => HelpWriter?.Invoke(GetHelp()), "Get help on parameters", "--help");
 
         /// <summary>
