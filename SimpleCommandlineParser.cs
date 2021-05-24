@@ -8,6 +8,7 @@ using MoreLinq;
 namespace SimpleCommandlineParser
 {
     using System.Globalization;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Command line parser class
@@ -82,44 +83,99 @@ namespace SimpleCommandlineParser
             Parms.AddRange(p);
         }
 
-        public Parser AddStringParameter(string name, Action<string> lambda, string help, string example = null)
+        Parser AddParameter(string name, Action<string> lambda, string help, string example, bool optional)
         {
             Parms.Add(new Parm { Lambda = lambda, Name = name, Example = example, Help = help });
             return this;
         }
 
+        public Parser AddStringParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddParameter(name, lambda, help, example, false);
 
-        public Parser AddIntegerParameter(string name, Action<string> lambda, string help, string example = null)
-            => AddStringParameter(name, x =>
-            {
-                if (int.TryParse(x, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i))
-                    lambda(i.ToString());
-                else throw new ArgumentException($"Error parsing argument `{name}`. Expecting an integer, got value `{x}`.");
-            }, help, example);
+        public Parser AddOptionalStringParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddParameter(name, lambda, help, example, true);
 
-        public Parser AddDecimalParameter(string name, Action<string> lambda, string help, string example = null)
-            => AddStringParameter(name, x =>
+        Parser AddParsedParameter(
+            string name, 
+            Action<string> lambda, 
+            Func<string, string> parser, 
+            string expected, 
+            string help,
+            string example, 
+            bool optional)
+        {
+            return AddParameter(name, x =>
             {
-                if (decimal.TryParse(x, NumberStyles.Any, CultureInfo.InvariantCulture, out var i))
-                    lambda(i.ToString(CultureInfo.InvariantCulture));
-                else throw new ArgumentException($"Error parsing argument `{name}`. Expecting a decimal number, got value `{x}`.");
-            }, help, example);
+                string parsed;
+                try
+                {
+                    parsed = (parser(x));
+                }
+                catch (Exception e)
+                {
+                    throw new ArgumentException($"Error parsing argument `{name}`. Expecting {expected}, got value `{x}`.", e);
+                }
 
-        public Parser AddDateParameter(string name, Action<string> lambda, string help, string example = null)
-            => AddStringParameter(name, x =>
-            {
-                if (DateTime.TryParseExact(x, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
-                    lambda(d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-                else throw new ArgumentException($"Error parsing argument `{name}`. Expecting an ISO date (yyyy-MM-dd), got value `{x}`.");
-            }, help, example);
+                lambda(parsed);
+            }, help, example, false);
 
-        public Parser AddDateTimeParameter(string name, Action<string> lambda, string help, string example = null)
-            => AddStringParameter(name, x =>
-            {
-                if (DateTime.TryParseExact(x, new[] { "yyyy-MM-dd HH:mm", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.fffff" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
-                    lambda(d.ToString("yyyy-MM-dd HH:mm:ss.fffff", CultureInfo.InvariantCulture));
-                else throw new ArgumentException($"Error parsing argument `{name}`. Expecting an ISO date (yyyy-MM-dd HH:mm:ss), got value `{x}`.");
-            }, help, example);
+        }
+
+        public Parser AddIntegerParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
+            => AddParsedParameter(name,
+                lambda,
+                x => int.Parse(x, NumberStyles.Integer, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture),
+                "integer",
+                help,
+                example,
+                optional);
+
+        public Parser AddOptionalIntegerParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddIntegerParameter(name, lambda, help, example, true);
+
+        public Parser AddDecimalParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
+            => AddParsedParameter(name,
+                lambda,
+                x => decimal.Parse(x, NumberStyles.Any, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture),
+                "decimal",
+                help,
+                example,
+                optional);
+
+        public Parser AddOptionalDecimalParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddDecimalParameter(name, lambda, help, example, true);
+
+        public Parser AddDateParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
+            => AddParsedParameter(name,
+                lambda,
+                x => DateTime.ParseExact(x, 
+                    "yyyy-MM-dd", 
+                    CultureInfo.InvariantCulture, 
+                    DateTimeStyles.None)
+                    .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                "date (yyyy-MM-dd)",
+                help,
+                example,
+                optional);
+
+        public Parser AddOptionalDateParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddDateParameter(name, lambda, help, example, true);
+
+        public Parser AddDateTimeParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
+            => AddParsedParameter(name,
+                lambda,
+                x => DateTime.ParseExact(x, 
+                    new[] { "yyyy-MM-dd HH:mm", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.fffff" }, 
+                    CultureInfo.InvariantCulture, 
+                    DateTimeStyles.None)
+                    .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                "DateTime (yyyy-MM-dd HH:mm:ss.fffff)",
+                help,
+                example,
+                optional);
+
+        public Parser AddOptionalDateTimeParameter(string name, Action<string> lambda, string help, string example = null)
+            => AddDateParameter(name, lambda, help, example, true);
 
         public Parser AddSwitch(string name, Action action, string help, string example = null)
         {
