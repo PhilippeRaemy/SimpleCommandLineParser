@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace UsageExample
+﻿namespace UsageExample
 {
+    using System;
     using System.Globalization;
     using SimpleCommandlineParser;
 
