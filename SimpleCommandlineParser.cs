@@ -78,20 +78,39 @@ namespace SimpleCommandlineParser
 
         public List<Parm> Parms { get; } = new List<Parm>();
 
-        public void AddRange(IEnumerable<Parm> p)
-        {
-            Parms.AddRange(p);
-        }
+        public void AddRange(IEnumerable<Parm> p) => Parms.AddRange(p);
 
         Parser AddParameter(string name, Action<string> lambda, string help, string example, bool optional)
         {
-            Parms.Add(new Parm { Lambda = lambda, Name = name, Example = example, Help = help });
+            Parms.Add(new Parm
+            {
+                Lambda = lambda, 
+                Name = name, 
+                Example = example, 
+                Help = help
+            });
             return this;
         }
 
+        /// <summary>
+        /// Add a string parameter
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <returns></returns>
         public Parser AddStringParameter(string name, Action<string> lambda, string help, string example = null)
             => AddParameter(name, lambda, help, example, false);
 
+        /// <summary>
+        /// Add an optional string parameter
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <returns></returns>
         public Parser AddOptionalStringParameter(string name, Action<string> lambda, string help, string example = null)
             => AddParameter(name, lambda, help, example, true);
 
@@ -121,6 +140,15 @@ namespace SimpleCommandlineParser
 
         }
 
+        /// <summary>
+        /// Add an integer parameter. An exception is thrown if the value could not be parsed to an invariant culture integer.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <param name="optional"></param>
+        /// <returns></returns>
         public Parser AddIntegerParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
             => AddParsedParameter(name,
                 lambda,
@@ -130,9 +158,27 @@ namespace SimpleCommandlineParser
                 example,
                 optional);
 
+        /// <summary>
+        /// Add an optional integer parameter. An exception is thrown if the value could not be parsed to an invariant culture integer.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <returns></returns>
         public Parser AddOptionalIntegerParameter(string name, Action<string> lambda, string help, string example = null)
             => AddIntegerParameter(name, lambda, help, example, true);
 
+        /// <summary>
+        /// Add a decimal number parameter.
+        /// An exception is thrown if the value could not be parsed to an invariant culture decimal (with a decimal dot).
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <param name="optional"></param>
+        /// <returns></returns>
         public Parser AddDecimalParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
             => AddParsedParameter(name,
                 lambda,
@@ -142,9 +188,27 @@ namespace SimpleCommandlineParser
                 example,
                 optional);
 
+        /// <summary>
+        /// Add an optional decimal number parameter.
+        /// An exception is thrown if the value could not be parsed to an invariant culture decimal (with a decimal dot).
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <returns></returns>
         public Parser AddOptionalDecimalParameter(string name, Action<string> lambda, string help, string example = null)
             => AddDecimalParameter(name, lambda, help, example, true);
 
+        /// <summary>
+        /// Add a date parameter. An exception is thrown if the value could not be parsed to an iso date (yyyy-MM-dd).
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <param name="optional"></param>
+        /// <returns></returns>
         public Parser AddDateParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
             => AddParsedParameter(name,
                 lambda,
@@ -158,9 +222,28 @@ namespace SimpleCommandlineParser
                 example,
                 optional);
 
+        /// <summary>
+        /// Add an optional date parameter. An exception is thrown if the value could not be parsed to an iso date (yyyy-MM-dd).
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <returns></returns>
         public Parser AddOptionalDateParameter(string name, Action<string> lambda, string help, string example = null)
             => AddDateParameter(name, lambda, help, example, true);
 
+        /// <summary>
+        /// Add a date-time parameter.
+        /// An exception is thrown if the value could not be parsed to an iso date-time (yyyy-MM-dd HH:mm:ss.fffff).
+        /// The seconds and fractions are optional
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <param name="optional"></param>
+        /// <returns></returns>
         public Parser AddDateTimeParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
             => AddParsedParameter(name,
                 lambda,
@@ -174,30 +257,72 @@ namespace SimpleCommandlineParser
                 example,
                 optional);
 
+        /// <summary>
+        /// Add an optional date-time parameter.
+        /// An exception is thrown if the value could not be parsed to an iso date-time (yyyy-MM-dd HH:mm:ss.fffff).
+        /// The seconds and fractions are optional
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="lambda"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <param name="optional"></param>
+        /// <returns></returns>
         public Parser AddOptionalDateTimeParameter(string name, Action<string> lambda, string help, string example = null)
             => AddDateParameter(name, lambda, help, example, true);
 
+        /// <summary>
+        /// Add a switch parameter
+        /// Switch parameters are by essence optional
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="action"></param>
+        /// <param name="help"></param>
+        /// <param name="example"></param>
+        /// <returns></returns>
         public Parser AddSwitch(string name, Action action, string help, string example = null)
         {
             Parms.Add(new Parm {Action = action, Name = name, Example = example, Help = help, Optional = true});
             return this;
         }
 
+        /// <summary>
+        /// Add a help switch parameter with standard text and behavior (--help)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public Parser ParserAddHelpSwitch(string name = "--help")
             => AddSwitch(name, () => HelpWriter?.Invoke(GetHelp()), "Get help on parameters", "--help");
 
+        /// <summary>
+        /// Add a help writer action
+        /// For instance Console.Out.WriteLine can do the job... 
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <returns></returns>
         public Parser WithHelpWriter(Action<string> writer)
         {
             HelpWriter = writer;
             return this;
         }
 
+        /// <summary>
+        /// Add an error writer action
+        /// For instance Console.Error.WriteLine can do the job... 
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <returns></returns>
         public Parser WithErrorWriter(Action<string> writer)
         {
             ErrorWriter = writer;
             return this;
         }
 
+        /// <summary>
+        /// Parse the command line and invokes the appropriate lambda functions and switch actions.
+        /// </summary>
+        /// <param name="args">The array of arguments receive on the command line</param>
+        /// <returns></returns>
         public Parser Run(IEnumerable<string> args)
         {
             ParseParameters(args);
@@ -216,6 +341,10 @@ namespace SimpleCommandlineParser
         public string ApplicationName { get; set; }
         public string ApplicationDescription { get; set; }
 
+        /// <summary>
+        /// Returns the help text as a printable string
+        /// </summary>
+        /// <returns></returns>
         public string GetHelp()
         {
             var maxlen = Parms.Max(p => p.Name.Length + (p.Example?.Length + 1 ?? 0));
@@ -229,6 +358,13 @@ namespace SimpleCommandlineParser
                 .ToDelimitedString(Environment.NewLine);
         }
 
+        /// <summary>
+        /// Eventually parse each argument on the command line.
+        /// Switches are expected in the form `--switch`
+        /// Named parameters are expected in the form `--name=value`
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public IEnumerable<KeyValuePair<string, string>> ParseParameters(IEnumerable<string> args)
         {
 
