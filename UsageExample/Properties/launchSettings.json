@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "UsageExample": {
+      "commandName": "Project",
+      "commandLineArgs": "--MySwitch --number=1 --command=HelloWorld"
+    }
+  }
+}
