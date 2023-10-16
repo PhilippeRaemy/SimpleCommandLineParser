@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Mannex;
-using Mannex.Collections.Generic;
-using MoreLinq;
 
 namespace SimpleCommandlineParser
 {
     using System.Globalization;
     using System.Runtime.InteropServices;
+    using Extensions;
 
     /// <summary>
     /// Command line parser class
@@ -372,7 +370,7 @@ namespace SimpleCommandlineParser
         public IEnumerable<KeyValuePair<string, string>> ParseParameters(IEnumerable<string> args)
         {
 
-            Parsed = args.Select(a => a.HasPrefix("--", StringComparison.Ordinal)
+            Parsed = args.Select(a => a.StartsWith("--", StringComparison.Ordinal)
                                           ? a.Split('=', (name, value) => name.Substring(2).ToLowerInvariant().AsKeyTo(value))
                                           : string.Empty.AsKeyTo(a))
                          .ToList(); // anonymous
