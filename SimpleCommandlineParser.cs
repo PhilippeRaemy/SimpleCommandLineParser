@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Mannex;
-using Mannex.Collections.Generic;
-using MoreLinq;
 
 namespace SimpleCommandlineParser
 {
+    using Extensions;
+
     public class Parser
     {
+        public int HelpWith = 132;
+
         public class Parm
         {
             string _name;
@@ -41,14 +42,58 @@ namespace SimpleCommandlineParser
             }
 
 
-            public string ToString(int maxlen)
+            public IEnumerable<string> ToString(int maxWidth)
             {
-                var format = string.Format(Optional ? "[--{{0}}{{2}}{{3}}]{{4,{0}}}: {{1}}" : "--{{0}}{{2}}{{3}}{{4,{0}}}: {{1}}",
-                    maxlen + 1 - Name.Length - (Example == null ? 0 : Example.Length + 1));
-                return string.Format(format, Name, Help,
-                    Example == null ? string.Empty : "=",
-                    Example ?? string.Empty,
-                    string.Empty);
+                IEnumerable<string> ToLines(string s, int maxParagraphWidth, string header = "")
+                {
+                    var line = string.Empty;
+                    var first = true;
+                    var usableWidth = maxParagraphWidth - header.Length;
+                    foreach (var word in s.Split(new []{' '}, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (string.IsNullOrWhiteSpace(line))
+                        {
+                            line = word;
+                            while (line.Length > usableWidth)
+                            {
+                                var subLine = line.Substring(0, maxParagraphWidth);
+                                line = line.Substring(maxParagraphWidth);
+                                yield return header + subLine;
+                                if (first)
+                                {
+                                    first = false;
+                                    header = new string(' ', header.Length);
+                                }
+                            }
+                        }
+
+                        var nextLine = $"{line} {word}";
+                        if (nextLine.Length > usableWidth)
+                        {
+                            yield return header + line.PadRight(usableWidth);
+                            if (first)
+                            {
+                                first = false;
+                                header = new string(' ', header.Length);
+                            }
+                        }
+
+                        line = nextLine;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(line))
+                        yield return header + line.PadRight(usableWidth);
+                }
+
+                var bodyWidth = (maxWidth - 3) / 2;
+                var pad = new string(' ', maxWidth);
+                var padded = Name + pad;
+                var format = $"{{0:,-{maxWidth}}}";
+
+                var left = ToLines(Name, bodyWidth).Concat(ToLines(Example, bodyWidth, "Default: "));
+                var right = ToLines(Help, bodyWidth);
+                return left.ZipLongest(right, (l, r) => $"{l ?? pad} : {r ?? pad}")
+                    .Append(new string('-', maxWidth));
             }
         }
 
@@ -72,20 +117,20 @@ namespace SimpleCommandlineParser
 
         public string GetHelp()
         {
-            var maxlen = Parms.Max(p => p.Name.Length + (p.Example?.Length + 1 ?? 0));
-
+            var maxlength = Parms.Max(p => p.Name.Length);
+            if (maxlength > HelpWith / 2) maxlength = HelpWith / 2;
             return new[]
                 {
                     ApplicationDescription,
                     $"{ApplicationName} usage is:"
                 }
-                .Concat(Parms.Select(p => p.ToString(maxlen)))
+                .Concat(Parms.SelectMany(p => p.ToString(maxlength)))
                 .ToDelimitedString(Environment.NewLine);
         }
 
         public IEnumerable<KeyValuePair<string, string>> ParseParameters(IEnumerable<string> args)
         {
-            Parsed = args.Select(a => a.HasPrefix("--", StringComparison.Ordinal)
+            Parsed = args.Select(a => a.StartsWith("--", StringComparison.Ordinal)
                     ? a.Split('=', (name, value) => name.Substring(2).ToLowerInvariant().AsKeyTo(value))
                     : string.Empty.AsKeyTo(a))
                 .ToList(); // anonymous
