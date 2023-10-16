@@ -5,7 +5,6 @@ using System.Linq;
 namespace SimpleCommandlineParser
 {
     using System.Globalization;
-    using System.Runtime.InteropServices;
     using Extensions;
 
     /// <summary>
@@ -64,17 +63,58 @@ namespace SimpleCommandlineParser
                 DistinctiveName = Name;
             }
 
-            public string ToString(int maxlen)
+            public IEnumerable<string> ToStrings(int maxWidth)
             {
-                var format = string.Format(Optional 
-                        ? "[--{{0}}{{2}}{{3}}]{{4,{0}}}: {{1}}" 
-                        : " --{{0}}{{2}}{{3}} {{4,{0}}}: {{1}}", 
-                    maxlen + 1 - Name.Length - (Example == null ? 0 : Example.Length + 1)
-                    );
-                return string.Format(format, Name, Help,
-                    Example == null ? string.Empty : "=",
-                    Example ?? string.Empty,
-                    string.Empty);
+                IEnumerable<string> ToLines(string s, int maxParagraphWidth, string header = "")
+                {
+                    var line = string.Empty;
+                    var first = true;
+                    var usableWidth = maxParagraphWidth - header.Length;
+                    foreach (var word in s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (string.IsNullOrWhiteSpace(line))
+                        {
+                            line = word;
+                            while (line.Length > usableWidth)
+                            {
+                                var subLine = line.Substring(0, maxParagraphWidth);
+                                line = line.Substring(maxParagraphWidth);
+                                yield return header + subLine;
+                                if (first)
+                                {
+                                    first = false;
+                                    header = new string(' ', header.Length);
+                                }
+                            }
+                        }
+
+                        var nextLine = $"{line} {word}";
+                        if (nextLine.Length > usableWidth)
+                        {
+                            yield return header + line.PadRight(usableWidth);
+                            if (first)
+                            {
+                                first = false;
+                                header = new string(' ', header.Length);
+                            }
+                        }
+
+                        line = nextLine;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(line))
+                        yield return header + line.PadRight(usableWidth);
+                }
+
+                var bodyWidth = (maxWidth - 3) / 2;
+                var pad = new string(' ', maxWidth);
+                var padded = Name + pad;
+                var format = $"{{0:,-{maxWidth}}}";
+
+                var left = ToLines(Name, bodyWidth).Concat(ToLines(Example, bodyWidth, "Default: "));
+                var right = ToLines(Help, bodyWidth);
+                return left.ZipLongest(right, (l, r) => $"{l ?? pad} : {r ?? pad}")
+                    .Append(new string('-', maxWidth));
             }
         }
 
@@ -356,7 +396,7 @@ namespace SimpleCommandlineParser
                     ApplicationDescription,
                     $"{ApplicationName} usage is:"
                 }
-                .Concat(Parms.Select(p => p.ToString(maxlen)))
+                .Concat(Parms.SelectMany(p => p.ToStrings(maxlen)))
                 .ToDelimitedString(Environment.NewLine);
         }
 
