@@ -9,7 +9,6 @@ namespace SimpleCommandlineParser
 {
     public class Parser
     {
-
         public class Parm
         {
             string _name;
@@ -37,13 +36,15 @@ namespace SimpleCommandlineParser
                     DistinctiveName = _name.Substring(0, i);
                     return;
                 }
+
                 DistinctiveName = Name;
             }
 
 
             public string ToString(int maxlen)
             {
-                var format = string.Format(Optional ? "[--{{0}}{{2}}{{3}}]{{4,{0}}}: {{1}}" : "--{{0}}{{2}}{{3}}{{4,{0}}}: {{1}}", maxlen + 1 - Name.Length - (Example == null ? 0 : Example.Length + 1));
+                var format = string.Format(Optional ? "[--{{0}}{{2}}{{3}}]{{4,{0}}}: {{1}}" : "--{{0}}{{2}}{{3}}{{4,{0}}}: {{1}}",
+                    maxlen + 1 - Name.Length - (Example == null ? 0 : Example.Length + 1));
                 return string.Format(format, Name, Help,
                     Example == null ? string.Empty : "=",
                     Example ?? string.Empty,
@@ -84,11 +85,10 @@ namespace SimpleCommandlineParser
 
         public IEnumerable<KeyValuePair<string, string>> ParseParameters(IEnumerable<string> args)
         {
-
             Parsed = args.Select(a => a.HasPrefix("--", StringComparison.Ordinal)
-                                          ? a.Split('=', (name, value) => name.Substring(2).ToLowerInvariant().AsKeyTo(value))
-                                          : string.Empty.AsKeyTo(a))
-                         .ToList(); // anonymous
+                    ? a.Split('=', (name, value) => name.Substring(2).ToLowerInvariant().AsKeyTo(value))
+                    : string.Empty.AsKeyTo(a))
+                .ToList(); // anonymous
             Analyze(Parsed, HelpWriter, ErrorWriter);
             return Parsed;
         }
@@ -106,9 +106,9 @@ namespace SimpleCommandlineParser
             }
 
             var missing = Parms.Where(p => !p.Optional && Parsed.All(q => !q.Key.StartsWith(p.DistinctiveName)))
-                                .Select(p => p.Name).ToList();
+                .Select(p => p.Name).ToList();
             var illegal = Parsed.Where(q => Parms.All(p => !q.Key.StartsWith(p.DistinctiveName)))
-                                .Select(q => q.Key).ToList();
+                .Select(q => q.Key).ToList();
             var help = Parsed.Any(p => p.Key == "?" || p.Key == "help");
             IsValid = !(help || missing.Any() || illegal.Any());
             if (!IsValid)
@@ -134,13 +134,13 @@ namespace SimpleCommandlineParser
         public void RunLambdas()
         {
             Parms.Join(Parsed, p => p.Name, q => q.Key, (p, q) => new { p.Lambda, p.Action, q.Value })
-                  .Where(x => x.Lambda != null || x.Action != null)
-                  .Select(x => (Action)(() =>
-                      {
-                          x.Action?.Invoke();
-                          x.Lambda?.Invoke(x.Value);
-                      }))
-                  .ForEach(λ => λ());
+                .Where(x => x.Lambda != null || x.Action != null)
+                .Select(x => (Action)(() =>
+                {
+                    x.Action?.Invoke();
+                    x.Lambda?.Invoke(x.Value);
+                }))
+                .ForEach(λ => λ());
         }
 
         public void EchoParameters()
