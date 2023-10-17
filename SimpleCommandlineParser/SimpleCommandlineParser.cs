@@ -291,7 +291,7 @@ namespace SimpleCommandlineParser
                     ApplicationDescription,
                     $"{ApplicationName} usage is:"
                 }
-                .Concat(Parms.SelectMany(p => p.ToStrings(maxlen, DISPLAY_WIDTH - maxlen)))
+                .Concat(Parms.SelectMany(p => p.ToStrings(maxlen, DisplayWidth - maxlen)))
                 .ToDelimitedString(Environment.NewLine);
         }
 

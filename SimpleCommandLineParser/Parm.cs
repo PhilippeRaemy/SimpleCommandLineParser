@@ -12,7 +12,7 @@ namespace SimpleCommandlineParser
     /// </summary>
     public partial class Parser
     {
-        const int DISPLAY_WIDTH = 132;
+        public int DisplayWidth = 132;
 
         /// <summary>
         /// An internal class to represent individual parameters
@@ -73,6 +73,7 @@ namespace SimpleCommandlineParser
                     var usableWidth = maxParagraphWidth - header.Length;
                     foreach (var word in s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
                     {
+                        string nextLine;
                         if (string.IsNullOrWhiteSpace(line))
                         {
                             line = word;
@@ -87,20 +88,21 @@ namespace SimpleCommandlineParser
                                     header = new string(' ', header.Length);
                                 }
                             }
-                        }
 
-                        var nextLine = $"{line} {word}";
+                            nextLine = line;
+                        }
+                        else nextLine = $"{line} {word}";
                         if (nextLine.Length > usableWidth)
                         {
                             yield return header + line.PadRight(usableWidth);
+                            line = word;
                             if (first)
                             {
                                 first = false;
                                 header = new string(' ', header.Length);
                             }
                         }
-
-                        line = nextLine;
+                        else line = nextLine;
                     }
 
                     if (!string.IsNullOrWhiteSpace(line))
@@ -110,12 +112,14 @@ namespace SimpleCommandlineParser
                 var bodyWidth = leftSize;
                 var pad = new string(' ', leftSize);
 
-                var left = ToLines(Name, bodyWidth);
-                if (!string.IsNullOrWhiteSpace(Example)) 
-                    left = left.Concat(ToLines(Example, bodyWidth, "Default: "));
+                var left = ToLines(Name, leftSize);
                 var right = string.IsNullOrWhiteSpace(Help)
                     ? Enumerable.Empty<string>()
                     : ToLines(Help, rightSize - 3);
+                if (!string.IsNullOrWhiteSpace(Example))
+                {
+                    right = right.Concat(ToLines(Example, rightSize - 3, "Example: "));
+                }
                 return left.ZipLongest(right, (l, r) => $"{l ?? pad} : {r ?? pad}")
                     .Append(new string('-', leftSize));
             }
