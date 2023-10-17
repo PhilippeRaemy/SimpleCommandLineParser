@@ -59,7 +59,7 @@ namespace SimpleCommandlineParser
                 {
                     if (others.Any(p => p.Name.StartsWith(_name.Substring(0, i)))) continue;
                     DistinctiveName = _name.Substring(0, i);
-                    return;
+                    return; 
                 }
                 DistinctiveName = Name;
             }
@@ -68,45 +68,49 @@ namespace SimpleCommandlineParser
             {
                 IEnumerable<string> ToLines(string s, int maxParagraphWidth, string header = "", char delimiter = ' ')
                 {
-                    var line = string.Empty;
                     var first = true;
                     var usableWidth = maxParagraphWidth - header.Length;
-                    foreach (var word in s.Split(delimiter, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (var paragraph in s.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                     {
-                        string nextLine;
-                        if (string.IsNullOrWhiteSpace(line))
+                        var line = string.Empty;
+                        foreach (var word in paragraph.Split(delimiter, StringSplitOptions.RemoveEmptyEntries))
                         {
-                            line = word;
-                            while (line.Length > usableWidth)
+                            string nextLine;
+                            if (string.IsNullOrWhiteSpace(line))
                             {
-                                var subLine = line.Substring(0, maxParagraphWidth);
-                                line = line.Substring(maxParagraphWidth);
-                                yield return header + subLine;
+                                line = word;
+                                while (line.Length > usableWidth)
+                                {
+                                    var subLine = line.Substring(0, maxParagraphWidth);
+                                    line = line.Substring(maxParagraphWidth);
+                                    yield return header + subLine;
+                                    if (first)
+                                    {
+                                        first = false;
+                                        header = new string(' ', header.Length);
+                                    }
+                                }
+
+                                nextLine = line;
+                            }
+                            else nextLine = $"{line} {word}";
+
+                            if (nextLine.Length > usableWidth)
+                            {
+                                yield return header + line.PadRight(usableWidth);
+                                line = word;
                                 if (first)
                                 {
                                     first = false;
                                     header = new string(' ', header.Length);
                                 }
                             }
-
-                            nextLine = line;
+                            else line = nextLine;
                         }
-                        else nextLine = $"{line} {word}";
-                        if (nextLine.Length > usableWidth)
-                        {
+
+                        if (!string.IsNullOrWhiteSpace(line))
                             yield return header + line.PadRight(usableWidth);
-                            line = word;
-                            if (first)
-                            {
-                                first = false;
-                                header = new string(' ', header.Length);
-                            }
-                        }
-                        else line = nextLine;
                     }
-
-                    if (!string.IsNullOrWhiteSpace(line))
-                        yield return header + line.PadRight(usableWidth);
                 }
 
                 var bodyWidth = leftSize;
