@@ -12,6 +12,7 @@ namespace SimpleCommandlineParser
     /// </summary>
     public class Parser
     {
+        const int DISPLAY_WIDTH = 132;
 
         /// <summary>
         /// An internal class to represent individual parameters
@@ -63,7 +64,7 @@ namespace SimpleCommandlineParser
                 DistinctiveName = Name;
             }
 
-            public IEnumerable<string> ToStrings(int maxWidth)
+            public IEnumerable<string> ToStrings(int leftSize, int rightSize)
             {
                 IEnumerable<string> ToLines(string s, int maxParagraphWidth, string header = "")
                 {
@@ -106,15 +107,17 @@ namespace SimpleCommandlineParser
                         yield return header + line.PadRight(usableWidth);
                 }
 
-                var bodyWidth = (maxWidth - 3) / 2;
-                var pad = new string(' ', maxWidth);
-                var padded = Name + pad;
-                var format = $"{{0:,-{maxWidth}}}";
+                var bodyWidth = leftSize;
+                var pad = new string(' ', leftSize);
 
-                var left = ToLines(Name, bodyWidth).Concat(ToLines(Example, bodyWidth, "Default: "));
-                var right = ToLines(Help, bodyWidth);
+                var left = ToLines(Name, bodyWidth);
+                if (!string.IsNullOrWhiteSpace(Example)) 
+                    left = left.Concat(ToLines(Example, bodyWidth, "Default: "));
+                var right = string.IsNullOrWhiteSpace(Help)
+                    ? Enumerable.Empty<string>()
+                    : ToLines(Help, rightSize - 3);
                 return left.ZipLongest(right, (l, r) => $"{l ?? pad} : {r ?? pad}")
-                    .Append(new string('-', maxWidth));
+                    .Append(new string('-', leftSize));
             }
         }
 
@@ -389,14 +392,14 @@ namespace SimpleCommandlineParser
         /// <returns></returns>
         public string GetHelp()
         {
-            var maxlen = Parms.Max(p => p.Name.Length + (p.Example?.Length + 1 ?? 0));
+            var maxlen = Parms.Max(p => p.Name.Length + (p.Example?.Length + 1 ?? 0));  
 
             return new[]
                 {
                     ApplicationDescription,
                     $"{ApplicationName} usage is:"
                 }
-                .Concat(Parms.SelectMany(p => p.ToStrings(maxlen)))
+                .Concat(Parms.SelectMany(p => p.ToStrings(maxlen, DISPLAY_WIDTH - maxlen)))
                 .ToDelimitedString(Environment.NewLine);
         }
 
