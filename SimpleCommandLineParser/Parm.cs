@@ -66,12 +66,12 @@ namespace SimpleCommandlineParser
 
             public IEnumerable<string> ToStrings(int leftSize, int rightSize)
             {
-                IEnumerable<string> ToLines(string s, int maxParagraphWidth, string header = "")
+                IEnumerable<string> ToLines(string s, int maxParagraphWidth, string header = "", char delimiter = ' ')
                 {
                     var line = string.Empty;
                     var first = true;
                     var usableWidth = maxParagraphWidth - header.Length;
-                    foreach (var word in s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (var word in s.Split(delimiter, StringSplitOptions.RemoveEmptyEntries))
                     {
                         string nextLine;
                         if (string.IsNullOrWhiteSpace(line))
@@ -112,7 +112,7 @@ namespace SimpleCommandlineParser
                 var bodyWidth = leftSize;
                 var pad = new string(' ', leftSize);
 
-                var left = ToLines(Name, leftSize);
+                var left = ToLines(Optional ? $"[--{Name}]" : $" --{Name} ", leftSize, delimiter: '\uc280');
                 var right = string.IsNullOrWhiteSpace(Help)
                     ? Enumerable.Empty<string>()
                     : ToLines(Help, rightSize - 3);

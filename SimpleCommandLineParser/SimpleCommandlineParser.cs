@@ -284,7 +284,7 @@ namespace SimpleCommandlineParser
         /// <returns></returns>
         public string GetHelp()
         {
-            var maxlen = Parms.Max(p => p.Name.Length + (p.Example?.Length + 1 ?? 0));  
+            var maxlen = Parms.Max(p => p.Name.Length) + 4;  // 4 added for [--]
 
             return new[]
                 {
