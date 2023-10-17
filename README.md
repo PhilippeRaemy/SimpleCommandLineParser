@@ -1,6 +1,9 @@
 # SimpleCommandLineParser
 Simple and straight forward command line parser for dotnet console apps
 
+## Project URL:
+https://github.com/PhilippeRaemy/SimpleCommandLineParser
+
 ## Usage:
 ``` c#
 namespace UsageExample

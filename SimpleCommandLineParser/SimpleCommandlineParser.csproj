@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net452;net462;net472;net48;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net48;netcoreapp2.1;netcoreapp3.1;netcoreapp6.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Authors>Philippe Raemy</Authors>
