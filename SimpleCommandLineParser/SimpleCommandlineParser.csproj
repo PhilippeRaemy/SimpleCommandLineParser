@@ -8,21 +8,29 @@
     <Authors>Philippe Raemy</Authors>
     <Description>Simple and straight forward command line parser for dotnet console apps</Description>
     <Copyright>Philippe Raemy 2020-2023</Copyright>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+      <PackageLicenseFile>LICENSE</PackageLicenseFile>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/PhilippeRaemy/SimpleCommandLineParser</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhilippeRaemy/SimpleCommandLineParser</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageReleaseNotes>Release 1.2 introduces chainable methods to add parameters ane invoke parsing, lambdas and switch actions</PackageReleaseNotes>
-      <Version>1.3.2</Version>
-      <AssemblyVersion>1.3.2.0</AssemblyVersion>
-      <FileVersion>1.3.2.0</FileVersion>
+    <PackageReleaseNotes>
+        Release 1.2 introduces chainable methods to add parameters ane invoke parsing, lambdas and switch actions
+        In release 1.3 the help text has been refactored for better readability.
+    </PackageReleaseNotes>
+      <Version>1.3.4</Version>
+      <AssemblyVersion>1.3.4.0</AssemblyVersion>
+      <FileVersion>1.3.4.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="LICENSE">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+      <None Include="LICENSE">
+          <Pack>True</Pack>
+          <PackagePath></PackagePath>
+      </None>
+      <None Include="README.md">
+          <Pack>True</Pack>
+          <PackagePath></PackagePath>
+      </None>
   </ItemGroup>
 
 </Project>
