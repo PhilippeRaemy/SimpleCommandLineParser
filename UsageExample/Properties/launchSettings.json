@@ -2,7 +2,7 @@
   "profiles": {
     "UsageExample": {
       "commandName": "Project",
-      "commandLineArgs": "--MySwitch --number=1 --command=HelloWorld"
+      "commandLineArgs": "--MySwitch --number=1 --command=HelloWorld --decimal=3.14 --date=1961-12-28 --datetime=1961-12-28T18:00"
     }
   }
 }

@@ -1,26 +1,29 @@
 ﻿namespace UsageExample
 {
     using System;
-    using System.Globalization;
     using SimpleCommandlineParser;
 
-    class Program
+    static class Program
     {
-        static int _number;
 
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            bool _mySwitch;
-            string _command;
-            var parser = new Parser()
+            var parser = new Parser("SimpleCommandlineParser", "SimpleCommandlineParser usage example")
                 .WithHelpWriter(Console.WriteLine)
                 .WithErrorWriter(Console.Error.WriteLine)
                 .AddHelpSwitch()
-                .AddSwitch("mySwitch", () => _mySwitch = true, "command line switch")
-                .AddStringParameter("Command", a => _command = a, "The command to be executed")
-                .AddOptionalIntegerParameter("Number", a => _number = int.Parse(a, NumberStyles.Integer, CultureInfo.InvariantCulture),
-                    "An integer parameter")
+                .AddSwitch("mySwitch", () => Console.WriteLine($"Got a switch called mySwitch"), "command line switch")
+                .AddStringParameter("Command", a => Console.WriteLine($"Command parameter: {a}"), "The command to be executed")
+                .AddOptionalStringParameter("OptionalString", a => Console.WriteLine($"OptionalStringArgument: {a}"), "An optional String argument")
+                .AddIntegerParameter("Number", a => Console.WriteLine($"Got a Number argument:{a}"), "An integer argument")
+                .AddOptionalIntegerParameter("OptionalNumber", a => Console.WriteLine($"Got an optional Number argument:{a}"), "An optional integer argument")
+                .AddDecimalParameter("Decimal", a => Console.WriteLine($"Got a Number argument:{a}"), "An Decimal argument")
+                .AddOptionalDecimalParameter("OptionalDecimal", a => Console.WriteLine($"Got an optional Number argument:{a}"), "An optional Decimal argument")
+                .AddDateParameter("Date", a => Console.WriteLine($"Got a Date argument:{a:D}"), "A date argument")
+                .AddOptionalDateParameter("OptionalDate", a => Console.WriteLine($"Got an optional Date argument:{a}"), "An optional date argument")
+                .AddDateTimeParameter("DateTime", a => Console.WriteLine($"Got a DateTime argument:{a:O}"), "A DateTime argument")
+                .AddOptionalDateTimeParameter("OptionalDateTime", a => Console.WriteLine($"Got an optional DateTime argument:{a}"), "An optional DateTime argument")
                 .Run(args);
                 
             parser.EchoParameters();
