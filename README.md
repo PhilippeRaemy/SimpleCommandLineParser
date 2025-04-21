@@ -1,5 +1,7 @@
 # SimpleCommandLineParser
-Simple and straight forward command line parser for dotnet console apps
+Simple and straight forward command line parser for dotnet console apps.  
+Version 1.3 includes a refreshed list of target frameworks, and removes dependencies on a number of other libraries.  
+Bux fixes, notably on optional parameters.
 
 ## Usage:
 ``` c#
