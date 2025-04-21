@@ -6,9 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleCommandlineParser", "SimpleCommandlineParser\SimpleCommandlineParser.csproj", "{80A174AF-1EDE-444A-BF67-AD473E3707BA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F9A657C9-23D5-4122-BA31-53FAF8BE6828}"
-	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UsageExample", "UsageExample\UsageExample.csproj", "{4A53EB21-1625-4D14-964A-96952047CC1F}"
 EndProject
