@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Mannex;
-using Mannex.Collections.Generic;
-using MoreLinq;
+// using MoreLinq;
 
 namespace SimpleCommandlineParser
 {
     using System.Globalization;
     using System.Runtime.InteropServices;
+    using Microsoft.VisualBasic;
 
     /// <summary>
     /// Command line parser class
     /// </summary>
     public class Parser
     {
-
         /// <summary>
         /// An internal class to represent individual parameters
         /// </summary>
@@ -31,22 +29,27 @@ namespace SimpleCommandlineParser
                 get => _name;
                 set => _name = value.ToLowerInvariant();
             }
+
             /// <summary>
             /// The help text to be displayed for this parameter
             /// </summary>
             public string Help { get; set; }
+
             /// <summary>
             /// A value or usage example
             /// </summary>
             public string Example { get; set; }
+
             /// <summary>
             /// A lambda function to be invoked with the parameter value when the parameter is found on the command line
             /// </summary>
             public Action<string> Lambda { get; set; }
+
             /// <summary>
             /// An action to be invoked with the parameter value when the switch is found on the command line
             /// </summary>
             public Action Action { get; set; }
+
             /// <summary>
             /// indicates if the parameter is optional or not. Default is not optional.
             /// </summary>
@@ -63,16 +66,17 @@ namespace SimpleCommandlineParser
                     DistinctiveName = _name.Substring(0, i);
                     return;
                 }
+
                 DistinctiveName = Name;
             }
 
-            public string ToString(int maxlen)
+            public string ToString(int maxLen)
             {
-                var format = string.Format(Optional 
-                        ? "[--{{0}}{{2}}{{3}}]{{4,{0}}}: {{1}}" 
-                        : " --{{0}}{{2}}{{3}} {{4,{0}}}: {{1}}", 
-                    maxlen + 1 - Name.Length - (Example == null ? 0 : Example.Length + 1)
-                    );
+                var format = string.Format(Optional
+                        ? "[--{{0}}{{2}}{{3}}]{{4,{0}}}: {{1}}"
+                        : " --{{0}}{{2}}{{3}} {{4,{0}}}: {{1}}",
+                    maxLen + 1 - Name.Length - (Example == null ? 0 : Example.Length + 1)
+                );
                 return string.Format(format, Name, Help,
                     Example == null ? string.Empty : "=",
                     Example ?? string.Empty,
@@ -80,7 +84,7 @@ namespace SimpleCommandlineParser
             }
         }
 
-        public List<Parm> Parms { get; } = new List<Parm>();
+        List<Parm> Parms { get; } = new List<Parm>();
 
         public void AddRange(IEnumerable<Parm> p) => Parms.AddRange(p);
 
@@ -88,9 +92,10 @@ namespace SimpleCommandlineParser
         {
             Parms.Add(new Parm
             {
-                Lambda = lambda, 
-                Name = name, 
-                Example = example, 
+                Lambda = lambda,
+                Name = name,
+                Example = example,
+                Optional = optional,
                 Help = help
             });
             return this;
@@ -118,30 +123,30 @@ namespace SimpleCommandlineParser
         public Parser AddOptionalStringParameter(string name, Action<string> lambda, string help, string example = null)
             => AddParameter(name, lambda, help, example, true);
 
-        Parser AddParsedParameter(
-            string name, 
-            Action<string> lambda, 
-            Func<string, string> parser, 
-            string expected, 
+        Parser AddParsedParameter<T>(
+            string name,
+            Action<T> lambda,
+            Func<string, T> parser,
+            string expected,
             string help,
-            string example, 
+            string example,
             bool optional)
         {
             return AddParameter(name, x =>
             {
-                string parsed;
+                T parsed;
                 try
                 {
-                    parsed = (parser(x));
+                    parsed = parser(x);
                 }
                 catch (Exception e)
                 {
-                    throw new ArgumentException($"Error parsing argument `{name}`. Expecting {expected}, got value `{x}`.", e);
+                    throw new ArgumentException(
+                        $"Error parsing argument `{name}`. Expecting {expected}, got value `{x}`.", e);
                 }
 
                 lambda(parsed);
-            }, help, example, false);
-
+            }, help, example, optional);
         }
 
         /// <summary>
@@ -153,10 +158,11 @@ namespace SimpleCommandlineParser
         /// <param name="example"></param>
         /// <param name="optional"></param>
         /// <returns></returns>
-        public Parser AddIntegerParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
-            => AddParsedParameter(name,
+        public Parser AddIntegerParameter(string name, Action<int> lambda, string help, string example = null,
+            bool optional = false) =>
+            AddParsedParameter(name,
                 lambda,
-                x => int.Parse(x, NumberStyles.Integer, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture),
+                x => int.Parse(x, NumberStyles.Integer, CultureInfo.InvariantCulture),
                 "integer",
                 help,
                 example,
@@ -170,7 +176,7 @@ namespace SimpleCommandlineParser
         /// <param name="help"></param>
         /// <param name="example"></param>
         /// <returns></returns>
-        public Parser AddOptionalIntegerParameter(string name, Action<string> lambda, string help, string example = null)
+        public Parser AddOptionalIntegerParameter(string name, Action<int> lambda, string help, string example = null)
             => AddIntegerParameter(name, lambda, help, example, true);
 
         /// <summary>
@@ -183,10 +189,11 @@ namespace SimpleCommandlineParser
         /// <param name="example"></param>
         /// <param name="optional"></param>
         /// <returns></returns>
-        public Parser AddDecimalParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
-            => AddParsedParameter(name,
+        public Parser AddDecimalParameter(string name, Action<decimal> lambda, string help, string example = null,
+            bool optional = false) =>
+            AddParsedParameter(name,
                 lambda,
-                x => decimal.Parse(x, NumberStyles.Any, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture),
+                x => decimal.Parse(x, NumberStyles.Any, CultureInfo.InvariantCulture),
                 "decimal",
                 help,
                 example,
@@ -201,7 +208,8 @@ namespace SimpleCommandlineParser
         /// <param name="help"></param>
         /// <param name="example"></param>
         /// <returns></returns>
-        public Parser AddOptionalDecimalParameter(string name, Action<string> lambda, string help, string example = null)
+        public Parser AddOptionalDecimalParameter(string name, Action<decimal> lambda, string help,
+            string example = null)
             => AddDecimalParameter(name, lambda, help, example, true);
 
         /// <summary>
@@ -213,14 +221,12 @@ namespace SimpleCommandlineParser
         /// <param name="example"></param>
         /// <param name="optional"></param>
         /// <returns></returns>
-        public Parser AddDateParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
-            => AddParsedParameter(name,
+        public Parser AddDateParameter(string name, Action<DateTime> lambda, string help, string example = null,
+            bool optional = false) =>
+            AddParsedParameter(name,
                 lambda,
-                x => DateTime.ParseExact(x, 
-                    "yyyy-MM-dd", 
-                    CultureInfo.InvariantCulture, 
-                    DateTimeStyles.None)
-                    .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                x => DateTime.ParseExact(x, new[] { "yyyy-MM-dd", "yyyyMMdd" },
+                    CultureInfo.InvariantCulture, DateTimeStyles.None),
                 "date (yyyy-MM-dd)",
                 help,
                 example,
@@ -234,7 +240,7 @@ namespace SimpleCommandlineParser
         /// <param name="help"></param>
         /// <param name="example"></param>
         /// <returns></returns>
-        public Parser AddOptionalDateParameter(string name, Action<string> lambda, string help, string example = null)
+        public Parser AddOptionalDateParameter(string name, Action<DateTime> lambda, string help, string example = null)
             => AddDateParameter(name, lambda, help, example, true);
 
         /// <summary>
@@ -248,15 +254,14 @@ namespace SimpleCommandlineParser
         /// <param name="example"></param>
         /// <param name="optional"></param>
         /// <returns></returns>
-        public Parser AddDateTimeParameter(string name, Action<string> lambda, string help, string example = null, bool optional = false)
-            => AddParsedParameter(name,
+        public Parser AddDateTimeParameter(string name, Action<DateTime> lambda, string help, string example = null,
+            bool optional = false) =>
+            AddParsedParameter(name,
                 lambda,
-                x => DateTime.ParseExact(x, 
-                    new[] { "yyyy-MM-dd HH:mm", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.fffff" }, 
-                    CultureInfo.InvariantCulture, 
-                    DateTimeStyles.None)
-                    .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                "DateTime (yyyy-MM-dd HH:mm:ss.fffff)",
+                x => DateTime.ParseExact(x,
+                    new[] { "yyyy-MM-ddTHH:mm", "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-ddTHH:mm:ss.fffff" },
+                    CultureInfo.InvariantCulture, DateTimeStyles.None),
+                "DateTime (yyyy-MM-ddTHH:mm:ss.fffff)",
                 help,
                 example,
                 optional);
@@ -270,9 +275,9 @@ namespace SimpleCommandlineParser
         /// <param name="lambda"></param>
         /// <param name="help"></param>
         /// <param name="example"></param>
-        /// <param name="optional"></param>
         /// <returns></returns>
-        public Parser AddOptionalDateTimeParameter(string name, Action<string> lambda, string help, string example = null)
+        public Parser AddOptionalDateTimeParameter(string name, Action<DateTime> lambda, string help,
+            string example = null)
             => AddDateParameter(name, lambda, help, example, true);
 
         /// <summary>
@@ -286,7 +291,7 @@ namespace SimpleCommandlineParser
         /// <returns></returns>
         public Parser AddSwitch(string name, Action action, string help, string example = null)
         {
-            Parms.Add(new Parm {Action = action, Name = name, Example = example, Help = help, Optional = true});
+            Parms.Add(new Parm { Action = action, Name = name, Example = example, Help = help, Optional = true });
             return this;
         }
 
@@ -296,7 +301,7 @@ namespace SimpleCommandlineParser
         /// <param name="name"></param>
         /// <returns></returns>
         public Parser AddHelpSwitch(string name = "help")
-            => AddSwitch(name, () => HelpWriter?.Invoke(GetHelp()), "Get help on parameters");
+            => AddSwitch(name, () => _helpWriter?.Invoke(GetHelp()), "Get help on parameters");
 
         /// <summary>
         /// Add a help writer action
@@ -306,7 +311,7 @@ namespace SimpleCommandlineParser
         /// <returns></returns>
         public Parser WithHelpWriter(Action<string> writer)
         {
-            HelpWriter = writer;
+            _helpWriter = writer;
             return this;
         }
 
@@ -318,14 +323,14 @@ namespace SimpleCommandlineParser
         /// <returns></returns>
         public Parser WithErrorWriter(Action<string> writer)
         {
-            ErrorWriter = writer;
+            _errorWriter = writer;
             return this;
         }
 
         /// <summary>
         /// Parse the command line and invokes the appropriate lambda functions and switch actions.
         /// </summary>
-        /// <param name="args">The array of arguments receive on the command line</param>
+        /// <param name="args">The array of arguments receives on the command line</param>
         /// <returns></returns>
         public Parser Run(IEnumerable<string> args)
         {
@@ -334,16 +339,22 @@ namespace SimpleCommandlineParser
             return this;
         }
 
-        public Action<string> HelpWriter;
-        public Action<string> ErrorWriter;
+        Action<string> _helpWriter;
+        Action<string> _errorWriter;
+
+        public Parser(string applicationName, string applicationDescription)
+        {
+            _applicationName = applicationName;
+            _applicationDescription = applicationDescription;
+        }
 
 
-        public static IEnumerable<KeyValuePair<string, string>> Parsed { get; private set; }
+        static IEnumerable<KeyValuePair<string, string>> Parsed { get; set; }
 
-        public bool IsValid { get; private set; }
+        bool IsValid { get; set; }
 
-        public string ApplicationName { get; set; }
-        public string ApplicationDescription { get; set; }
+        readonly string _applicationName;
+        readonly string _applicationDescription;
 
         /// <summary>
         /// Returns the help text as a printable string
@@ -351,15 +362,14 @@ namespace SimpleCommandlineParser
         /// <returns></returns>
         public string GetHelp()
         {
-            var maxlen = Parms.Max(p => p.Name.Length + (p.Example?.Length + 1 ?? 0));
+            var maxLen = Parms.Max(p => p.Name.Length + (p.Example?.Length + 1 ?? 0));
 
-            return new[]
+            return string.Join(Environment.NewLine, new[]
                 {
-                    ApplicationDescription,
-                    $"{ApplicationName} usage is:"
+                    _applicationDescription,
+                    $"{_applicationName} usage is:"
                 }
-                .Concat(Parms.Select(p => p.ToString(maxlen)))
-                .ToDelimitedString(Environment.NewLine);
+                .Concat(Parms.Select(p => p.ToString(maxLen))));
         }
 
         /// <summary>
@@ -369,18 +379,16 @@ namespace SimpleCommandlineParser
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public IEnumerable<KeyValuePair<string, string>> ParseParameters(IEnumerable<string> args)
+        void ParseParameters(IEnumerable<string> args)
         {
-
-            Parsed = args.Select(a => a.HasPrefix("--", StringComparison.Ordinal)
-                                          ? a.Split('=', (name, value) => name.Substring(2).ToLowerInvariant().AsKeyTo(value))
-                                          : string.Empty.AsKeyTo(a))
-                         .ToList(); // anonymous
-            Analyze(Parsed, HelpWriter, ErrorWriter);
-            return Parsed;
+            Parsed = args.Select(a => a.StartsWith("--", StringComparison.Ordinal)
+                    ? a.Split('=', (name, value) => name.Substring(2).ToLowerInvariant().AsKeyTo(value))
+                    : string.Empty.AsKeyTo(a))
+                .ToList(); // anonymous
+            Analyze(_helpWriter, _errorWriter);
         }
 
-        void Analyze(IEnumerable<KeyValuePair<string, string>> parsed, Action<string> hWriter, Action<string> eWriter)
+        void Analyze(Action<string> hWriter, Action<string> eWriter)
         {
             foreach (var parm in Parms) parm.SetDistinctiveName(Parms);
 
@@ -388,16 +396,16 @@ namespace SimpleCommandlineParser
                 return;
 
             var missing = Parms.Where(p => !p.Optional && Parsed.All(q => !q.Key.StartsWith(p.DistinctiveName)))
-                                .Select(p => p.Name).ToList();
+                .Select(p => p.Name).ToList();
             var illegal = Parsed.Where(q => Parms.All(p => !q.Key.StartsWith(p.DistinctiveName)))
-                                .Select(q => q.Key).ToList();
+                .Select(q => q.Key).ToList();
             var help = Parsed.Any(p => p.Key == "?" || p.Key == "help");
             IsValid = !(help || missing.Any() || illegal.Any());
             if (!IsValid)
             {
                 new[]
                     {
-                        help ? string.Empty : $"{ApplicationName} was started with invalid command line options:",
+                        help ? string.Empty : $"{_applicationName} was started with invalid command line options:",
                         help ? string.Empty : Labelize("Missing options: ", missing),
                         help ? string.Empty : Labelize("Illegal options: ", illegal),
                         GetHelp()
@@ -410,25 +418,25 @@ namespace SimpleCommandlineParser
         static string Labelize(string label, List<string> s)
         {
             if (!s.Any()) return null;
-            return label + s.ToDelimitedString(", ");
+            return label + string.Join(", ", s);
         }
 
-        public void RunLambdas()
+        void RunLambdas()
         {
             Parms.Join(Parsed, p => p.Name, q => q.Key, (p, q) => new { p.Lambda, p.Action, q.Value })
-                  .Where(x => x.Lambda != null || x.Action != null)
-                  .Select(x => (Action)(() =>
-                      {
-                          x.Action?.Invoke();
-                          x.Lambda?.Invoke(x.Value);
-                      }))
-                  .ForEach(λ => λ());
+                .Where(x => x.Lambda != null || x.Action != null)
+                .Select(x => (Action)(() =>
+                {
+                    x.Action?.Invoke();
+                    x.Lambda?.Invoke(x.Value);
+                }))
+                .ForEach(λ => λ());
         }
 
         public void EchoParameters()
         {
-            HelpWriter(
-                $"{ApplicationName} running with parameters: {Parsed.Select(p => $"--{p.Key}{(string.IsNullOrWhiteSpace(p.Value) ? string.Empty : "=")}{p.Value}").ToDelimitedString(" ")}");
+            var delimitedString = string.Join(" ", Parsed.Select(p => $"--{p.Key}{(string.IsNullOrWhiteSpace(p.Value) ? string.Empty : "=")}{p.Value}"));
+            _helpWriter($"{_applicationName} running with parameters: {delimitedString}");
         }
     }
 }
