@@ -1,7 +1,13 @@
 # SimpleCommandLineParser
 Simple and straight forward command line parser for dotnet console apps.  
-Version 1.3 includes a refreshed list of target frameworks, and removes dependencies on a number of other libraries.  
-Bux fixes, notably on optional parameters.
+Version 1.4.1 includes a refreshed list of target frameworks, and removes dependencies on a number of other libraries.  
+## Breaking changes:
+As of version 1.4.0...
+* the constructor wants an application name and description as parameters
+* the lambdas passed to the parameter methods are now Action<T> instead of Action<string>, T being the type of the parameter. This allows for better type checking and less casting.
+
+## Bug fixes: 
+Handle optional parameters.
 
 ## Usage:
 ``` c#
